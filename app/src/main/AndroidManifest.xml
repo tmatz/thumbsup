@@ -43,9 +43,6 @@
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="io.github.tmatz.thumbsup.EXECUTE_NOTIFICATION_ACTION" />
-            </intent-filter>
         </service>
     </application>
 </manifest>

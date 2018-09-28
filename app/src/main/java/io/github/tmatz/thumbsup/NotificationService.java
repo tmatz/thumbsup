@@ -18,11 +18,11 @@ public class NotificationService extends NotificationListenerService
     public static final String ACTION_DISLIKE = "ACTION_DISLIKE";
 
     private static final String PACKAGE_NAME_SPOTIFY = "com.spotify.music";    
-    private static final String TITLE_LOVE = "このトラックはいいね!";
-    private static final String TITLE_DONT_LOVE = "[このトラックはいいね!]に設定済み";
+    private static final String TITLE_LOVE = "いいね！";
+    private static final String TITLE_DONT_LOVE = "イマイチ";
     private static final String TITLE_ADD_TO_LIBRARY = "My Libraryに保存";
     private static final String TITLE_DELETE_FROM_LIBRARY = "My Libraryから削除。";
-    private static final String TITLE_DISLIKE = "このトラックは嫌い";
+    private static final String TITLE_DISLIKE = "この曲は今後再生しない";
 
     private PendingIntent mIntentLove;
     private PendingIntent mIntentDontLove;
