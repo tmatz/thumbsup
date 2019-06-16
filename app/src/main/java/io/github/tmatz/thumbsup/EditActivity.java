@@ -15,8 +15,8 @@ public class EditActivity extends Activity
       super.onCreate(savedInstanceState);
       setContentView(R.layout.edit);
 
-      final RadioGroup actionGroup = (RadioGroup)findViewById(R.id.editRadioGroupAction);
-      final Button buttonOk = (Button)findViewById(R.id.editButtonOk);
+      final RadioGroup actionGroup = findViewById(R.id.editRadioGroupAction);
+      final Button buttonOk = findViewById(R.id.editButtonOk);
 
       buttonOk.setOnClickListener(new OnClickListener()
          {

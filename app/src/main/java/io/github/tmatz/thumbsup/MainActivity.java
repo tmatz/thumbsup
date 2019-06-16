@@ -14,10 +14,10 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        final Button buttonLove = (Button)findViewById(R.id.buttonLove);
-        final Button buttonDontLove = (Button)findViewById(R.id.buttonDontLove);
-        final Button buttonToggleLove = (Button)findViewById(R.id.buttonToggleLove);
-        final Button buttonDislike = (Button)findViewById(R.id.buttonDislike);
+        final Button buttonLove = findViewById(R.id.buttonLove);
+        final Button buttonDontLove = findViewById(R.id.buttonDontLove);
+        final Button buttonToggleLove = findViewById(R.id.buttonToggleLove);
+        final Button buttonDislike = findViewById(R.id.buttonDislike);
 
         buttonLove.setOnClickListener(new OnClickListener()
             {
