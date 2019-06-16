@@ -22,13 +22,16 @@ public class NotificationService extends NotificationListenerService
     private static final String TITLE_DONT_LOVE = "イマイチ";
     private static final String TITLE_ADD_TO_LIBRARY = "My Libraryに保存";
     private static final String TITLE_DELETE_FROM_LIBRARY = "My Libraryから削除。";
-    private static final String TITLE_DISLIKE = "この曲は今後再生しない";
+    private static final String TITLE_DISLIKE = "この曲を非表示にする";
+
+    private static Boolean sEnableShowNotificationInfo;
 
     private PendingIntent mIntentLove;
     private PendingIntent mIntentDontLove;
     private PendingIntent mIntentAddToLibrary;
     private PendingIntent mIntentDeleteFromLibrary;
     private PendingIntent mIntentDislike;
+    private String mLastShownNotificationInfo;
 
     @Override
     public void onCreate()
@@ -81,7 +84,14 @@ public class NotificationService extends NotificationListenerService
             return;
         }
 
-        //ShowNotificationInfo(sbn.getNotification());
+        if (sEnableShowNotificationInfo)
+        {
+            showNotificationInfo(sbn.getNotification());
+        }
+        else if (mLastShownNotificationInfo != null)
+        {
+            mLastShownNotificationInfo = null;
+        }
 
         ClearIntent();
         for (Notification.Action action: sbn.getNotification().actions)
@@ -247,28 +257,41 @@ public class NotificationService extends NotificationListenerService
         return sb.toString();
     }
 
-    private void ShowNotificationInfo(Notification notification)
+    public static void enableShowNotificationInfo(Boolean enable)
+    {
+        sEnableShowNotificationInfo = enable;
+    }
+
+    private void showNotificationInfo(Notification notification)
     {
         StringBuilder sb = new StringBuilder();
         for (Notification.Action action: notification.actions)
         {
             ArrayList<CharSequence> infos = new ArrayList<>();
-            infos.add(action.title);
-            infos.add("" + action.icon);
-            if (action.getIcon() != null)
+            infos.add("\"" + action.title + "\"");
+            //infos.add("" + action.icon);
+            //if (action.getIcon() != null)
+            //{
+            //    infos.add("icon=" + action.getIcon().toString());
+            //}
+            if (sb.length() > 0)
             {
-                infos.add("icon=" + action.getIcon().toString());
+                sb.append(",");
             }
             sb.append(infoToString(infos));
         }
         String info = sb.toString();
 
-        Toast.makeText(this, info, Toast.LENGTH_LONG).show();
-
-        ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clipboard != null)
+        if (!info.equals(mLastShownNotificationInfo))
         {
-            clipboard.setText(info);
+            mLastShownNotificationInfo = info;
+            Toast.makeText(this, info, Toast.LENGTH_LONG).show();
+
+            ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard != null)
+            {
+                clipboard.setText(info);
+            }
         }
     }
 }

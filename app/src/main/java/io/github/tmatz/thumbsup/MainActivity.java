@@ -55,4 +55,18 @@ public class MainActivity extends Activity
                 }
             });
     }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        NotificationService.enableShowNotificationInfo(true);
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        NotificationService.enableShowNotificationInfo(false);
+    }
 }
