@@ -1,10 +1,11 @@
 package io.github.tmatz.thumbsup;
 
-import android.app.*;
-import android.os.*;
-import android.widget.*;
-import android.view.View.*;
-import android.view.*;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class MainActivity extends Activity 
 {
@@ -18,6 +19,7 @@ public class MainActivity extends Activity
         final Button buttonDontLove = findViewById(R.id.buttonDontLove);
         final Button buttonToggleLove = findViewById(R.id.buttonToggleLove);
         final Button buttonDislike = findViewById(R.id.buttonDislike);
+        final Button buttonNotificationSetting = findViewById(R.id.buttonNotificationSetting);
 
         buttonLove.setOnClickListener(new OnClickListener()
             {
@@ -52,6 +54,15 @@ public class MainActivity extends Activity
                 public void onClick(View p1)
                 {
                     NotificationService.dislike(MainActivity.this);
+                }
+            });
+
+        buttonNotificationSetting.setOnClickListener(new OnClickListener()
+            {
+                @Override
+                public void onClick(View p1)
+                {
+                    startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
                 }
             });
     }

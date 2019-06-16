@@ -30,5 +30,11 @@
         android:text="Dislike"
         android:id="@+id/buttonDislike"/>
 
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Notification Setting"
+        android:id="@+id/buttonNotificationSetting"/>
+
 </LinearLayout>
 
