@@ -24,7 +24,7 @@ public class NotificationService extends NotificationListenerService
     private static final String TITLE_DELETE_FROM_LIBRARY = "My Libraryから削除。";
     private static final String TITLE_DISLIKE = "この曲を非表示にする";
 
-    private static Boolean sEnableShowNotificationInfo;
+    private static Boolean sEnableShowNotificationInfo = false;
 
     private PendingIntent mIntentLove;
     private PendingIntent mIntentDontLove;
