@@ -1,12 +1,17 @@
 package io.github.tmatz.thumbsup;
 
-import android.app.*;
-import android.content.*;
-import android.service.notification.*;
-import android.widget.*;
-import java.util.*;
-
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
+import android.service.notification.NotificationListenerService;
+import android.service.notification.StatusBarNotification;
 import android.text.ClipboardManager;
+import android.widget.Toast;
+import java.util.ArrayList;
+import javax.crypto.NullCipher;
 
 public class NotificationService extends NotificationListenerService
 {
@@ -32,6 +37,7 @@ public class NotificationService extends NotificationListenerService
     private PendingIntent mIntentDeleteFromLibrary;
     private PendingIntent mIntentDislike;
     private String mLastShownNotificationInfo;
+    private ToneGenerator mToneGenerator;
 
     @Override
     public void onCreate()
@@ -235,10 +241,44 @@ public class NotificationService extends NotificationListenerService
             try
             {
                 intent.send();
+                toneAck();
+                return;
             }
             catch (PendingIntent.CanceledException e)
-            {}            
+            {
+                ClearIntent();
+            }
         }
+
+        toneError();
+    }
+
+    private void toneAck()
+    {
+        try
+        {
+            if (mToneGenerator == null)
+            {
+                mToneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
+            }
+            mToneGenerator.startTone(ToneGenerator.TONE_PROP_ACK);
+        }
+        catch (Exception e)
+        {}
+    }
+
+    private void toneError()
+    {
+        try
+        {
+            if (mToneGenerator == null)
+            {
+                mToneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
+            }
+            mToneGenerator.startTone(ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE);
+        }
+        catch (Exception e)
+        {}
     }
 
     private String infoToString(ArrayList<CharSequence> values)
