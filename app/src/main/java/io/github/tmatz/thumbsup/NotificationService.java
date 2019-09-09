@@ -31,11 +31,6 @@ public class NotificationService extends NotificationListenerService
 
     private static Boolean sEnableShowNotificationInfo = false;
 
-    private PendingIntent mIntentLove;
-    private PendingIntent mIntentDontLove;
-    private PendingIntent mIntentAddToLibrary;
-    private PendingIntent mIntentDeleteFromLibrary;
-    private PendingIntent mIntentDislike;
     private String mLastShownNotificationInfo;
     private ToneGenerator mToneGenerator;
 
@@ -80,75 +75,6 @@ public class NotificationService extends NotificationListenerService
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @Override
-    public void onNotificationPosted(StatusBarNotification sbn)
-    {
-        super.onNotificationPosted(sbn);
-
-        if (!PACKAGE_NAME_SPOTIFY.equals(sbn.getPackageName()))
-        {
-            return;
-        }
-
-        if (sEnableShowNotificationInfo)
-        {
-            showNotificationInfo(sbn.getNotification());
-        }
-        else if (mLastShownNotificationInfo != null)
-        {
-            mLastShownNotificationInfo = null;
-        }
-
-        ClearIntent();
-        for (Notification.Action action: sbn.getNotification().actions)
-        {
-            switch (action.title.toString().trim())
-            {
-                case TITLE_LOVE:
-                    mIntentLove = action.actionIntent;
-                    break;
-
-                case TITLE_DONT_LOVE:
-                    mIntentDontLove = action.actionIntent;
-                    break;
-
-                case TITLE_ADD_TO_LIBRARY:
-                    mIntentAddToLibrary = action.actionIntent;
-                    break;
-
-                case TITLE_DELETE_FROM_LIBRARY:
-                    mIntentDeleteFromLibrary = action.actionIntent;
-                    break;
-
-                case TITLE_DISLIKE:
-                    mIntentDislike = action.actionIntent;
-                    break;
-            }
-        }
-    }
-
-    @Override
-    public void onNotificationRemoved(StatusBarNotification sbn, NotificationListenerService.RankingMap rankingMap)
-    {
-        super.onNotificationRemoved(sbn, rankingMap);
-
-        if (!PACKAGE_NAME_SPOTIFY.equals(sbn.getPackageName()))
-        {
-            return;
-        }
-
-        ClearIntent();
-    }
-
-    private void ClearIntent()
-    {
-        mIntentLove = null;
-        mIntentDontLove = null;
-        mIntentAddToLibrary = null;
-        mIntentDeleteFromLibrary = null;
-        mIntentDislike = null;
-    }
-
     private static void startService(Context context, String action)
     {
         Intent intent = new Intent(context, NotificationService.class);
@@ -177,16 +103,36 @@ public class NotificationService extends NotificationListenerService
         startService(context, ACTION_DISLIKE);
     }
 
+    private PendingIntent getNotificationActionIntent(String packageName, String title)
+    {
+        for (StatusBarNotification notification: getActiveNotifications())
+        {
+            if (packageName.equals(notification.getPackageName()))
+            {
+                for (Notification.Action action: notification.getNotification().actions)
+                {
+                    if (title.equals(action.title.toString().trim()))
+                    {
+                        return action.actionIntent;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     private PendingIntent getLoveIntent()
     {
-        if (mIntentLove != null)
+        PendingIntent love = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_LOVE);
+        if (love != null)
         {
-            return mIntentLove;
+            return love;
         }
 
-        if (mIntentAddToLibrary != null)
+        PendingIntent addToLibrary = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_ADD_TO_LIBRARY);
+        if (addToLibrary != null)
         {
-            return mIntentAddToLibrary;
+            return addToLibrary;
         }
 
         return null;
@@ -194,14 +140,27 @@ public class NotificationService extends NotificationListenerService
 
     private PendingIntent getDontLoveIntent()
     {
-        if (mIntentDontLove != null)
+        PendingIntent dontLove = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DONT_LOVE);
+        if (dontLove != null)
         {
-            return mIntentDontLove;
+            return dontLove;
         }
 
-        if (mIntentDeleteFromLibrary != null)
+        PendingIntent deleteFromLibrary = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DELETE_FROM_LIBRARY);
+        if (deleteFromLibrary != null)
         {
-            return mIntentDeleteFromLibrary;
+            return deleteFromLibrary;
+        }
+
+        return null;
+    }
+
+    private PendingIntent getDislikeIntent()
+    {
+        PendingIntent dislike = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DISLIKE);
+        if (dislike != null)
+        {
+            return dislike;
         }
 
         return null;
@@ -231,7 +190,7 @@ public class NotificationService extends NotificationListenerService
 
     private void sendDislike()
     {
-        sendPendingIntent(mIntentDislike);
+        sendPendingIntent(getDislikeIntent());
     }
 
     private void sendPendingIntent(PendingIntent intent)
@@ -241,41 +200,43 @@ public class NotificationService extends NotificationListenerService
             try
             {
                 intent.send();
-                toneAck();
-                return;
+                toneSuccess();
             }
             catch (PendingIntent.CanceledException e)
             {
-                ClearIntent();
+                toneError();
             }
         }
-
-        toneError();
+        else
+        {
+            toneFailed();
+        }
     }
 
-    private void toneAck()
+    private void toneSuccess()
     {
-        try
-        {
-            if (mToneGenerator == null)
-            {
-                mToneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
-            }
-            mToneGenerator.startTone(ToneGenerator.TONE_PROP_ACK);
-        }
-        catch (Exception e)
-        {}
+        playTone(ToneGenerator.TONE_PROP_ACK);
+    }
+
+    private void toneFailed()
+    {
+        playTone(ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE);
     }
 
     private void toneError()
     {
+        playTone(ToneGenerator.TONE_SUP_INTERCEPT);
+    }
+
+    private void playTone(int tone)
+    {
         try
         {
             if (mToneGenerator == null)
             {
                 mToneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
             }
-            mToneGenerator.startTone(ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE);
+            mToneGenerator.startTone(tone);
         }
         catch (Exception e)
         {}
