@@ -36,5 +36,12 @@
         android:text="Notification Setting"
         android:id="@+id/buttonNotificationSetting"/>
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dump"
+        android:id="@+id/buttonDump"/>
+    />
+
 </LinearLayout>
 

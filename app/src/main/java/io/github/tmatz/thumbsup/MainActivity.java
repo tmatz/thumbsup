@@ -20,6 +20,7 @@ public class MainActivity extends Activity
         final Button buttonToggleLove = findViewById(R.id.buttonToggleLove);
         final Button buttonDislike = findViewById(R.id.buttonDislike);
         final Button buttonNotificationSetting = findViewById(R.id.buttonNotificationSetting);
+        final Button buttonDump = findViewById(R.id.buttonDump);
 
         buttonLove.setOnClickListener(new OnClickListener()
             {
@@ -65,19 +66,26 @@ public class MainActivity extends Activity
                     startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
                 }
             });
+
+        buttonDump.setOnClickListener(new OnClickListener()
+            {
+                @Override
+                public void onClick(View p1)
+                {
+                    NotificationService.dump(MainActivity.this);
+                }
+            });
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
-        NotificationService.enableShowNotificationInfo(true);
     }
 
     @Override
     protected void onPause()
     {
         super.onPause();
-        NotificationService.enableShowNotificationInfo(false);
     }
 }

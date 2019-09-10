@@ -12,6 +12,7 @@ import android.text.ClipboardManager;
 import android.widget.Toast;
 import java.util.ArrayList;
 import javax.crypto.NullCipher;
+import android.util.Log;
 
 public class NotificationService extends NotificationListenerService
 {
@@ -21,17 +22,15 @@ public class NotificationService extends NotificationListenerService
     public static final String ACTION_DONT_LOVE = "ACTION_THUMBS_DOWN";
     public static final String ACTION_TOGGLE_LOVE = "ACTION_TOGGLE_THUMBS_UPDOWN";
     public static final String ACTION_DISLIKE = "ACTION_DISLIKE";
+    public static final String ACTION_DUMP = "ACTION_DUMP";
 
     private static final String PACKAGE_NAME_SPOTIFY = "com.spotify.music";    
-    private static final String TITLE_LOVE = "いいね！";
-    private static final String TITLE_DONT_LOVE = "イマイチ";
-    private static final String TITLE_ADD_TO_LIBRARY = "My Libraryに保存";
-    private static final String TITLE_DELETE_FROM_LIBRARY = "My Libraryから削除。";
-    private static final String TITLE_DISLIKE = "この曲を非表示にする";
+    private static final String[] TITLE_LOVE = { "Like", "いいね！" };
+    private static final String[] TITLE_DONT_LOVE = { "Unlike", "イマイチ" };
+    private static final String[] TITLE_ADD_TO_LIBRARY = { "????", "My Libraryに保存" };
+    private static final String[] TITLE_DELETE_FROM_LIBRARY = { "????", "My Libraryから削除。" };
+    private static final String[] TITLE_DISLIKE = { "Hide this song", "この曲を非表示にする" };
 
-    private static Boolean sEnableShowNotificationInfo = false;
-
-    private String mLastShownNotificationInfo;
     private ToneGenerator mToneGenerator;
 
     @Override
@@ -69,6 +68,10 @@ public class NotificationService extends NotificationListenerService
                 case ACTION_DISLIKE:
                     sendDislike();
                     break;
+
+                case ACTION_DUMP:
+                    showNotificationInfo(getNotification(PACKAGE_NAME_SPOTIFY));
+                    break;
             }
         }
 
@@ -103,33 +106,48 @@ public class NotificationService extends NotificationListenerService
         startService(context, ACTION_DISLIKE);
     }
 
-    private PendingIntent getNotificationActionIntent(String packageName, String title)
+    public static void dump(Context context)
+    {
+        startService(context, ACTION_DUMP);
+    }
+
+    private Notification getNotification(String packageName)
     {
         for (StatusBarNotification notification: getActiveNotifications())
         {
             if (packageName.equals(notification.getPackageName()))
             {
-                for (Notification.Action action: notification.getNotification().actions)
+                return notification.getNotification();
+            }
+        }
+        return null;
+    }
+
+    private Notification.Action getNotificationActionIntent(String packageName, String[] titles)
+    {
+        Notification notification = getNotification(packageName);
+        if (notification != null)
+        {
+            for (Notification.Action action: notification.actions)
+            {
+                if (contains(titles, action.title.toString().trim()) && action.actionIntent != null)
                 {
-                    if (title.equals(action.title.toString().trim()))
-                    {
-                        return action.actionIntent;
-                    }
+                    return action;
                 }
             }
         }
         return null;
     }
 
-    private PendingIntent getLoveIntent()
+    private Notification.Action getLoveAction()
     {
-        PendingIntent love = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_LOVE);
+        Notification.Action love = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_LOVE);
         if (love != null)
         {
             return love;
         }
 
-        PendingIntent addToLibrary = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_ADD_TO_LIBRARY);
+        Notification.Action addToLibrary = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_ADD_TO_LIBRARY);
         if (addToLibrary != null)
         {
             return addToLibrary;
@@ -138,15 +156,15 @@ public class NotificationService extends NotificationListenerService
         return null;
     }
 
-    private PendingIntent getDontLoveIntent()
+    private Notification.Action getDontLoveIntent()
     {
-        PendingIntent dontLove = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DONT_LOVE);
+        Notification.Action dontLove = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DONT_LOVE);
         if (dontLove != null)
         {
             return dontLove;
         }
 
-        PendingIntent deleteFromLibrary = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DELETE_FROM_LIBRARY);
+        Notification.Action deleteFromLibrary = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DELETE_FROM_LIBRARY);
         if (deleteFromLibrary != null)
         {
             return deleteFromLibrary;
@@ -155,9 +173,9 @@ public class NotificationService extends NotificationListenerService
         return null;
     }
 
-    private PendingIntent getDislikeIntent()
+    private Notification.Action getDislikeIntent()
     {
-        PendingIntent dislike = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DISLIKE);
+        Notification.Action dislike = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DISLIKE);
         if (dislike != null)
         {
             return dislike;
@@ -168,7 +186,7 @@ public class NotificationService extends NotificationListenerService
 
     private void sendLove()
     {
-        sendPendingIntent(getLoveIntent());
+        sendPendingIntent(getLoveAction());
     }
 
     private void sendDontLove()
@@ -178,7 +196,7 @@ public class NotificationService extends NotificationListenerService
 
     private void sendToggleLove()
     {
-        if (getLoveIntent() != null)
+        if (getLoveAction() != null)
         {
             sendLove();
         }
@@ -193,13 +211,13 @@ public class NotificationService extends NotificationListenerService
         sendPendingIntent(getDislikeIntent());
     }
 
-    private void sendPendingIntent(PendingIntent intent)
+    private void sendPendingIntent(Notification.Action action)
     {
-        if (intent != null)
+        if (action != null)
         {
             try
             {
-                intent.send();
+                action.actionIntent.send();
                 toneSuccess();
             }
             catch (PendingIntent.CanceledException e)
@@ -246,7 +264,6 @@ public class NotificationService extends NotificationListenerService
     {
         StringBuilder sb = new StringBuilder();
         if (values.size() > 0)
-
         {
             sb.append(values.get(0));
             for (int i = 1; i < values.size(); i++)
@@ -258,11 +275,6 @@ public class NotificationService extends NotificationListenerService
         return sb.toString();
     }
 
-    public static void enableShowNotificationInfo(Boolean enable)
-    {
-        sEnableShowNotificationInfo = enable;
-    }
-
     private void showNotificationInfo(Notification notification)
     {
         StringBuilder sb = new StringBuilder();
@@ -270,11 +282,6 @@ public class NotificationService extends NotificationListenerService
         {
             ArrayList<CharSequence> infos = new ArrayList<>();
             infos.add("\"" + action.title + "\"");
-            //infos.add("" + action.icon);
-            //if (action.getIcon() != null)
-            //{
-            //    infos.add("icon=" + action.getIcon().toString());
-            //}
             if (sb.length() > 0)
             {
                 sb.append(",");
@@ -283,16 +290,31 @@ public class NotificationService extends NotificationListenerService
         }
         String info = sb.toString();
 
-        if (!info.equals(mLastShownNotificationInfo))
-        {
-            mLastShownNotificationInfo = info;
-            Toast.makeText(this, info, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, info, Toast.LENGTH_LONG).show();
+        copyToClipboard(info);
+    }
 
-            ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
-            if (clipboard != null)
+    private void copyToClipboard(String text)
+    {
+        ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null)
+        {
+            clipboard.setText(text);
+        }
+    }
+
+    private static boolean contains(String[] array, String str)
+    {
+        if (str != null)
+        {
+            for (String s: array)
             {
-                clipboard.setText(info);
+                if (str.equals(s))
+                {
+                    return true;
+                }
             }
         }
+        return false;
     }
 }
