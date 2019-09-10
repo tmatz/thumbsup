@@ -51,39 +51,36 @@ public class NotificationService extends NotificationListenerService
         if (EXECUTE_NOTIFICATION_ACTION.equals(intent.getAction()))
         {
             String action = intent.getStringExtra(EXTRA_ACTION);
-            switch (action)
-            {
-                case ACTION_LOVE:
-                    sendLove();
-                    break;
-
-                case ACTION_DONT_LOVE:
-                    sendDontLove();
-                    break;
-
-                case ACTION_TOGGLE_LOVE:
-                    sendToggleLove();
-                    break;
-
-                case ACTION_DISLIKE:
-                    sendDislike();
-                    break;
-
-                case ACTION_DUMP:
-                    showNotificationInfo(getNotification(PACKAGE_NAME_SPOTIFY));
-                    break;
-            }
+            execute(action);
         }
 
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private static void startService(Context context, String action)
+    private void execute(String action)
     {
-        Intent intent = new Intent(context, NotificationService.class);
-        intent.setAction(EXECUTE_NOTIFICATION_ACTION);
-        intent.putExtra(EXTRA_ACTION, action);
-        context.startService(intent);
+        switch (action)
+        {
+            case ACTION_LOVE:
+                sendLove();
+                break;
+
+            case ACTION_DONT_LOVE:
+                sendDontLove();
+                break;
+
+            case ACTION_TOGGLE_LOVE:
+                sendToggleLove();
+                break;
+
+            case ACTION_DISLIKE:
+                sendDislike();
+                break;
+
+            case ACTION_DUMP:
+                dumpNotificationActions(getNotification(PACKAGE_NAME_SPOTIFY));
+                break;
+        }
     }
 
     public static void love(Context context)
@@ -111,77 +108,12 @@ public class NotificationService extends NotificationListenerService
         startService(context, ACTION_DUMP);
     }
 
-    private Notification getNotification(String packageName)
+    private static void startService(Context context, String action)
     {
-        for (StatusBarNotification notification: getActiveNotifications())
-        {
-            if (packageName.equals(notification.getPackageName()))
-            {
-                return notification.getNotification();
-            }
-        }
-        return null;
-    }
-
-    private Notification.Action getNotificationActionIntent(String packageName, String[] titles)
-    {
-        Notification notification = getNotification(packageName);
-        if (notification != null)
-        {
-            for (Notification.Action action: notification.actions)
-            {
-                if (contains(titles, action.title.toString().trim()) && action.actionIntent != null)
-                {
-                    return action;
-                }
-            }
-        }
-        return null;
-    }
-
-    private Notification.Action getLoveAction()
-    {
-        Notification.Action love = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_LOVE);
-        if (love != null)
-        {
-            return love;
-        }
-
-        Notification.Action addToLibrary = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_ADD_TO_LIBRARY);
-        if (addToLibrary != null)
-        {
-            return addToLibrary;
-        }
-
-        return null;
-    }
-
-    private Notification.Action getDontLoveIntent()
-    {
-        Notification.Action dontLove = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DONT_LOVE);
-        if (dontLove != null)
-        {
-            return dontLove;
-        }
-
-        Notification.Action deleteFromLibrary = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DELETE_FROM_LIBRARY);
-        if (deleteFromLibrary != null)
-        {
-            return deleteFromLibrary;
-        }
-
-        return null;
-    }
-
-    private Notification.Action getDislikeIntent()
-    {
-        Notification.Action dislike = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DISLIKE);
-        if (dislike != null)
-        {
-            return dislike;
-        }
-
-        return null;
+        Intent intent = new Intent(context, NotificationService.class);
+        intent.setAction(EXECUTE_NOTIFICATION_ACTION);
+        intent.putExtra(EXTRA_ACTION, action);
+        context.startService(intent);
     }
 
     private void sendLove()
@@ -199,10 +131,13 @@ public class NotificationService extends NotificationListenerService
         if (getLoveAction() != null)
         {
             sendLove();
+            return;
         }
-        else if (getDontLoveIntent() != null)
+
+        if (getDontLoveIntent() != null)
         {
             sendDontLove();
+            return;
         }
     }
 
@@ -210,24 +145,83 @@ public class NotificationService extends NotificationListenerService
     {
         sendPendingIntent(getDislikeIntent());
     }
+    
+    private Notification getNotification(String packageName)
+    {
+        for (StatusBarNotification notification: getActiveNotifications())
+        {
+            if (packageName.equals(notification.getPackageName()))
+            {
+                return notification.getNotification();
+            }
+        }
+        return null;
+    }
+
+    private Notification.Action getNotificationActionIntent(String packageName, String[] titles)
+    {
+        Notification notification = getNotification(packageName);
+        if (notification == null)
+        {
+            return null;
+        }
+
+        for (Notification.Action action: notification.actions)
+        {
+            if (contains(titles, action.title.toString().trim()) && action.actionIntent != null)
+            {
+                return action;
+            }
+        }
+
+        return null;
+    }
+
+    private Notification.Action getLoveAction()
+    {
+        Notification.Action action = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_LOVE);
+
+        if (action == null)
+        {
+            action = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_ADD_TO_LIBRARY);
+        }
+
+        return action;
+    }
+
+    private Notification.Action getDontLoveIntent()
+    {
+        Notification.Action action = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DONT_LOVE);
+
+        if (action == null)
+        {
+            action = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DELETE_FROM_LIBRARY);
+        }
+
+        return action;
+    }
+
+    private Notification.Action getDislikeIntent()
+    {
+        return getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DISLIKE);
+    }
 
     private void sendPendingIntent(Notification.Action action)
     {
-        if (action != null)
-        {
-            try
-            {
-                action.actionIntent.send();
-                toneSuccess();
-            }
-            catch (PendingIntent.CanceledException e)
-            {
-                toneError();
-            }
-        }
-        else
+        if (action == null)
         {
             toneFailed();
+            return;
+        }
+
+        try
+        {
+            action.actionIntent.send();
+            toneSuccess();
+        }
+        catch (PendingIntent.CanceledException e)
+        {
+            toneError();
         }
     }
 
@@ -260,33 +254,13 @@ public class NotificationService extends NotificationListenerService
         {}
     }
 
-    private String infoToString(ArrayList<CharSequence> values)
-    {
-        StringBuilder sb = new StringBuilder();
-        if (values.size() > 0)
-        {
-            sb.append(values.get(0));
-            for (int i = 1; i < values.size(); i++)
-            {
-                sb.append("," + values.get(i));
-            }
-            sb.append(";");
-        }
-        return sb.toString();
-    }
-
-    private void showNotificationInfo(Notification notification)
+    private void dumpNotificationActions(Notification notification)
     {
         StringBuilder sb = new StringBuilder();
         for (Notification.Action action: notification.actions)
         {
-            ArrayList<CharSequence> infos = new ArrayList<>();
-            infos.add("\"" + action.title + "\"");
-            if (sb.length() > 0)
-            {
-                sb.append(",");
-            }
-            sb.append(infoToString(infos));
+            sb.append(action.title);
+            sb.append(";");
         }
         String info = sb.toString();
 
@@ -305,16 +279,19 @@ public class NotificationService extends NotificationListenerService
 
     private static boolean contains(String[] array, String str)
     {
-        if (str != null)
+        if (str == null)
         {
-            for (String s: array)
+            return false;
+        }
+
+        for (String s: array)
+        {
+            if (str.equals(s))
             {
-                if (str.equals(s))
-                {
-                    return true;
-                }
+                return true;
             }
         }
+
         return false;
     }
 }
