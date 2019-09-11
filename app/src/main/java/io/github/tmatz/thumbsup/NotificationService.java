@@ -239,6 +239,13 @@ public class NotificationService extends NotificationListenerService
     {
         public void execute()
         {
+            // already marked
+            if (getDontLoveAction() != null)
+            {
+                toneSuccess();
+                return;
+            }
+
             sendNotificationAction(getLoveAction());
         }
     }
@@ -247,6 +254,13 @@ public class NotificationService extends NotificationListenerService
     {
         public void execute()
         {
+            // already marked
+            if (getLoveAction() != null)
+            {
+                toneSuccess();
+                return;
+            }
+
             sendNotificationAction(getDontLoveAction());
         }
     }
