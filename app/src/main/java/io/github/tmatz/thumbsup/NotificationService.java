@@ -50,8 +50,9 @@ public class NotificationService extends NotificationListenerService
     {
         if (EXECUTE_NOTIFICATION_ACTION.equals(intent.getAction()))
         {
-            String action = intent.getStringExtra(EXTRA_ACTION);
-            executeAction(action);
+            String actionName = intent.getStringExtra(EXTRA_ACTION);
+            IServiceAction action = createServiceAction(actionName);
+            action.execute();
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -90,29 +91,27 @@ public class NotificationService extends NotificationListenerService
         context.startService(intent);
     }
 
-    private void executeAction(String action)
+    private IServiceAction createServiceAction(String action)
     {
         switch (action)
         {
             case ACTION_LOVE:
-                new ActionLove().execute();
-                break;
+                return new ActionLove();
 
             case ACTION_DONT_LOVE:
-                new ActionDontLove().execute();
-                break;
+                return new ActionDontLove();
 
             case ACTION_TOGGLE_LOVE:
-                new ActionToggleLove().execute();
-                break;
+                return new ActionToggleLove();
 
             case ACTION_DISLIKE:
-                new ActionDislike().execute();
-                break;
+                return new ActionDislike();
 
             case ACTION_DUMP:
-                new ActionDump().execute();
-                break;
+                return new ActionDump();
+
+            default:
+                return new ActionNop();
         }
     }
 
@@ -145,6 +144,21 @@ public class NotificationService extends NotificationListenerService
         }
 
         return null;
+    }
+
+    private Notification.Action getLoveAction()
+    {
+        return getNotificationAction(TITLE_LOVE, TITLE_ADD_TO_LIBRARY);
+    }
+
+    private Notification.Action getDontLoveAction()
+    {
+        return getNotificationAction(TITLE_DONT_LOVE, TITLE_DELETE_FROM_LIBRARY);
+    }
+
+    private Notification.Action getDislikeAction()
+    {
+        return getNotificationAction(TITLE_DISLIKE);
     }
 
     private void sendNotificationAction(Notification.Action action)
@@ -216,33 +230,28 @@ public class NotificationService extends NotificationListenerService
         return false;
     }
 
-    class ActionLove
+    interface IServiceAction
+    {
+        void execute();
+    }
+
+    class ActionLove implements IServiceAction
     {
         public void execute()
         {
             sendNotificationAction(getLoveAction());
         }
-
-        private Notification.Action getLoveAction()
-        {
-            return getNotificationAction(TITLE_LOVE, TITLE_ADD_TO_LIBRARY);
-        }
     }
 
-    class ActionDontLove
+    class ActionDontLove implements IServiceAction
     {
         public void execute()
         {
             sendNotificationAction(getDontLoveAction());
         }
-
-        private Notification.Action getDontLoveAction()
-        {
-            return getNotificationAction(TITLE_DONT_LOVE, TITLE_DELETE_FROM_LIBRARY);
-        }
     }
 
-    class ActionToggleLove
+    class ActionToggleLove implements IServiceAction
     {
         public void execute()
         {
@@ -255,32 +264,17 @@ public class NotificationService extends NotificationListenerService
 
             sendNotificationAction(action);
         }
-
-        private Notification.Action getLoveAction()
-        {
-            return getNotificationAction(TITLE_LOVE, TITLE_ADD_TO_LIBRARY);
-        }
-
-        private Notification.Action getDontLoveAction()
-        {
-            return getNotificationAction(TITLE_DONT_LOVE, TITLE_DELETE_FROM_LIBRARY);
-        }
     }
 
-    class ActionDislike
+    class ActionDislike implements IServiceAction
     {
         public void execute()
         {
             sendNotificationAction(getDislikeAction());
         }
-
-        private Notification.Action getDislikeAction()
-        {
-            return getNotificationAction(TITLE_DISLIKE);
-        }
     }
 
-    class ActionDump
+    class ActionDump implements IServiceAction
     {
         public void execute()
         {
@@ -310,6 +304,14 @@ public class NotificationService extends NotificationListenerService
             {
                 clipboard.setText(text);
             }
+        }
+    }
+
+    class ActionNop implements IServiceAction
+    {
+        @Override
+        public void execute()
+        {
         }
     }
 }
