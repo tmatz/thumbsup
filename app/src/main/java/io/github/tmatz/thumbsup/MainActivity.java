@@ -22,43 +22,48 @@ public class MainActivity extends Activity
         final Button buttonNotificationSetting = findViewById(R.id.buttonNotificationSetting);
         final Button buttonDump = findViewById(R.id.buttonDump);
 
-        buttonLove.setOnClickListener(new OnClickListener()
+        buttonLove.setOnClickListener(
+            new OnClickListener()
             {
                 @Override
                 public void onClick(View p1)
                 {
-                    NotificationService.love(MainActivity.this);
+                    ThumbsUp.love(MainActivity.this);
                 }
             });
 
-        buttonDontLove.setOnClickListener(new OnClickListener()
+        buttonDontLove.setOnClickListener(
+            new OnClickListener()
             {
                 @Override
                 public void onClick(View p1)
                 {
-                    NotificationService.dontLove(MainActivity.this);
+                    ThumbsUp.dontLove(MainActivity.this);
                 }
             });
 
-        buttonToggleLove.setOnClickListener(new OnClickListener()
+        buttonToggleLove.setOnClickListener(
+            new OnClickListener()
             {
                 @Override
                 public void onClick(View p1)
                 {
-                    NotificationService.toggleLove(MainActivity.this);
+                    ThumbsUp.toggleLove(MainActivity.this);
                 }
             });
 
-        buttonDislike.setOnClickListener(new OnClickListener()
+        buttonDislike.setOnClickListener(
+            new OnClickListener()
             {
                 @Override
                 public void onClick(View p1)
                 {
-                    NotificationService.dislike(MainActivity.this);
+                    ThumbsUp.dislike(MainActivity.this);
                 }
             });
 
-        buttonNotificationSetting.setOnClickListener(new OnClickListener()
+        buttonNotificationSetting.setOnClickListener(
+            new OnClickListener()
             {
                 @Override
                 public void onClick(View p1)
@@ -67,12 +72,13 @@ public class MainActivity extends Activity
                 }
             });
 
-        buttonDump.setOnClickListener(new OnClickListener()
+        buttonDump.setOnClickListener(
+            new OnClickListener()
             {
                 @Override
                 public void onClick(View p1)
                 {
-                    NotificationService.dump(MainActivity.this);
+                    ThumbsUp.dump(MainActivity.this);
                 }
             });
     }

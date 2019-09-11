@@ -14,19 +14,19 @@ public class FireReceiver extends BroadcastReceiver
         switch (action)
         {
             case ThumbsUpIntent.ACTION_LOVE:
-                NotificationService.love(context);
+                ThumbsUp.love(context);
                 break;
 
             case ThumbsUpIntent.ACTION_DONT_LOVE:
-                NotificationService.dontLove(context);
+                ThumbsUp.dontLove(context);
                 break;
 
             case ThumbsUpIntent.ACTION_TOGGLE_LOVE:
-                NotificationService.toggleLove(context);
+                ThumbsUp.toggleLove(context);
                 break;
 
             case ThumbsUpIntent.ACTION_DISLIKE:
-                NotificationService.dislike(context);
+                ThumbsUp.dislike(context);
                 break;
         }
     }

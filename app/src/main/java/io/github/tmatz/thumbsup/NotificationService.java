@@ -56,39 +56,6 @@ public class NotificationService extends NotificationListenerService
         return super.onStartCommand(intent, flags, startId);
     }
 
-    public static void love(Context context)
-    {
-        startService(context, ACTION_LOVE);
-    }
-
-    public static void dontLove(Context context)
-    {
-        startService(context, ACTION_DONT_LOVE);
-    }
-
-    public static void toggleLove(Context context)
-    {
-        startService(context, ACTION_TOGGLE_LOVE);
-    }
-
-    public static void dislike(Context context)
-    {
-        startService(context, ACTION_DISLIKE);
-    }
-
-    public static void dump(Context context)
-    {
-        startService(context, ACTION_DUMP);
-    }
-
-    private static void startService(Context context, String action)
-    {
-        Intent intent = new Intent(context, NotificationService.class);
-        intent.setAction(EXECUTE_NOTIFICATION_ACTION);
-        intent.putExtra(EXTRA_ACTION, action);
-        context.startService(intent);
-    }
-
     private IServiceAction createServiceAction(String action)
     {
         switch (action)
