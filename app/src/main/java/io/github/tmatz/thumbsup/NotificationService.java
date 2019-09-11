@@ -10,9 +10,6 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.text.ClipboardManager;
 import android.widget.Toast;
-import java.util.ArrayList;
-import javax.crypto.NullCipher;
-import android.util.Log;
 
 public class NotificationService extends NotificationListenerService
 {
@@ -31,7 +28,7 @@ public class NotificationService extends NotificationListenerService
     private static final String[] TITLE_DELETE_FROM_LIBRARY = { "????", "My Libraryから削除。" };
     private static final String[] TITLE_DISLIKE = { "Hide this song", "この曲を非表示にする" };
 
-    private ToneGenerator mToneGenerator;
+    private TonePlayer mTonePlayer;
 
     @Override
     public void onCreate()
@@ -43,6 +40,7 @@ public class NotificationService extends NotificationListenerService
     public void onDestroy()
     {
         super.onDestroy();
+        mTonePlayer = null;
     }
 
     @Override
@@ -137,7 +135,8 @@ public class NotificationService extends NotificationListenerService
 
         for (Notification.Action action: notification.actions)
         {
-            if (isContained(action.title.toString().trim(), titles) && action.actionIntent != null)
+            String title = action.title.toString().trim();
+            if (Utils.existIn(title, titles) && action.actionIntent != null)
             {
                 return action;
             }
@@ -163,86 +162,70 @@ public class NotificationService extends NotificationListenerService
 
     private void sendNotificationAction(Notification.Action action)
     {
-        if (action == null)
+        if (action == null || action.actionIntent == null)
         {
-            toneFailed();
+            getTonePlayer().toneFailed();
             return;
         }
 
         try
         {
             action.actionIntent.send();
-            toneSuccess();
+            getTonePlayer().toneSuccess();
         }
         catch (PendingIntent.CanceledException e)
         {
-            toneError();
+            getTonePlayer().toneError();
         }
     }
 
-    private void toneSuccess()
+    private TonePlayer getTonePlayer()
     {
-        playTone(ToneGenerator.TONE_PROP_ACK);
-    }
-
-    private void toneFailed()
-    {
-        playTone(ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE);
-    }
-
-    private void toneError()
-    {
-        playTone(ToneGenerator.TONE_SUP_INTERCEPT);
-    }
-
-    private void playTone(int tone)
-    {
-        try
+        if (mTonePlayer == null)
         {
-            if (mToneGenerator == null)
-            {
-                mToneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
-            }
+            mTonePlayer = new TonePlayer();
+        }
+        return mTonePlayer;
+    }
+
+    private class TonePlayer
+    {
+        private final ToneGenerator mToneGenerator = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
+
+        public void toneSuccess()
+        {
+            playTone(ToneGenerator.TONE_PROP_ACK);
+        }
+
+        public void toneFailed()
+        {
+            playTone(ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE);
+        }
+
+        public void toneError()
+        {
+            playTone(ToneGenerator.TONE_SUP_INTERCEPT);
+        }
+
+        private void playTone(int tone)
+        {
             mToneGenerator.startTone(tone);
         }
-        catch (Exception e)
-        {}
     }
 
-    private static boolean isContained(String str, String[]... arrays)
-    {
-        if (str == null)
-        {
-            return false;
-        }
-
-        for (String[] a: arrays)
-        {
-            for (String s: a)
-            {
-                if (str.equals(s))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    interface IServiceAction
+    private interface IServiceAction
     {
         void execute();
     }
 
-    class ActionLove implements IServiceAction
+    private class ActionLove implements IServiceAction
     {
         public void execute()
         {
             // already marked
             if (getDontLoveAction() != null)
             {
-                toneSuccess();
+                getTonePlayer().toneSuccess();
                 return;
             }
 
@@ -250,14 +233,14 @@ public class NotificationService extends NotificationListenerService
         }
     }
 
-    class ActionDontLove implements IServiceAction
+    private class ActionDontLove implements IServiceAction
     {
         public void execute()
         {
             // already marked
             if (getLoveAction() != null)
             {
-                toneSuccess();
+                getTonePlayer().toneSuccess();
                 return;
             }
 
@@ -265,7 +248,7 @@ public class NotificationService extends NotificationListenerService
         }
     }
 
-    class ActionToggleLove implements IServiceAction
+    private class ActionToggleLove implements IServiceAction
     {
         public void execute()
         {
@@ -280,7 +263,7 @@ public class NotificationService extends NotificationListenerService
         }
     }
 
-    class ActionDislike implements IServiceAction
+    private class ActionDislike implements IServiceAction
     {
         public void execute()
         {
@@ -288,7 +271,7 @@ public class NotificationService extends NotificationListenerService
         }
     }
 
-    class ActionDump implements IServiceAction
+    private class ActionDump implements IServiceAction
     {
         public void execute()
         {
@@ -321,11 +304,35 @@ public class NotificationService extends NotificationListenerService
         }
     }
 
-    class ActionNop implements IServiceAction
+    private class ActionNop implements IServiceAction
     {
         @Override
         public void execute()
         {
+        }
+    }
+
+    private static class Utils
+    {
+        public static boolean existIn(String str, String[]... arrays)
+        {
+            if (str == null)
+            {
+                return false;
+            }
+
+            for (String[] a: arrays)
+            {
+                for (String s: a)
+                {
+                    if (str.equals(s))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
