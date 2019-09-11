@@ -51,36 +51,10 @@ public class NotificationService extends NotificationListenerService
         if (EXECUTE_NOTIFICATION_ACTION.equals(intent.getAction()))
         {
             String action = intent.getStringExtra(EXTRA_ACTION);
-            execute(action);
+            executeAction(action);
         }
 
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    private void execute(String action)
-    {
-        switch (action)
-        {
-            case ACTION_LOVE:
-                sendLove();
-                break;
-
-            case ACTION_DONT_LOVE:
-                sendDontLove();
-                break;
-
-            case ACTION_TOGGLE_LOVE:
-                sendToggleLove();
-                break;
-
-            case ACTION_DISLIKE:
-                sendDislike();
-                break;
-
-            case ACTION_DUMP:
-                dumpNotificationActions(getNotification(PACKAGE_NAME_SPOTIFY));
-                break;
-        }
     }
 
     public static void love(Context context)
@@ -116,36 +90,32 @@ public class NotificationService extends NotificationListenerService
         context.startService(intent);
     }
 
-    private void sendLove()
+    private void executeAction(String action)
     {
-        sendPendingIntent(getLoveAction());
-    }
-
-    private void sendDontLove()
-    {
-        sendPendingIntent(getDontLoveIntent());
-    }
-
-    private void sendToggleLove()
-    {
-        if (getLoveAction() != null)
+        switch (action)
         {
-            sendLove();
-            return;
-        }
+            case ACTION_LOVE:
+                new ActionLove().execute();
+                break;
 
-        if (getDontLoveIntent() != null)
-        {
-            sendDontLove();
-            return;
+            case ACTION_DONT_LOVE:
+                new ActionDontLove().execute();
+                break;
+
+            case ACTION_TOGGLE_LOVE:
+                new ActionToggleLove().execute();
+                break;
+
+            case ACTION_DISLIKE:
+                new ActionDislike().execute();
+                break;
+
+            case ACTION_DUMP:
+                new ActionDump().execute();
+                break;
         }
     }
 
-    private void sendDislike()
-    {
-        sendPendingIntent(getDislikeIntent());
-    }
-    
     private Notification getNotification(String packageName)
     {
         for (StatusBarNotification notification: getActiveNotifications())
@@ -158,9 +128,9 @@ public class NotificationService extends NotificationListenerService
         return null;
     }
 
-    private Notification.Action getNotificationActionIntent(String packageName, String[] titles)
+    private Notification.Action getNotificationAction(String[]... titles)
     {
-        Notification notification = getNotification(packageName);
+        Notification notification = getNotification(PACKAGE_NAME_SPOTIFY);
         if (notification == null)
         {
             return null;
@@ -168,7 +138,7 @@ public class NotificationService extends NotificationListenerService
 
         for (Notification.Action action: notification.actions)
         {
-            if (contains(titles, action.title.toString().trim()) && action.actionIntent != null)
+            if (isContained(action.title.toString().trim(), titles) && action.actionIntent != null)
             {
                 return action;
             }
@@ -177,36 +147,7 @@ public class NotificationService extends NotificationListenerService
         return null;
     }
 
-    private Notification.Action getLoveAction()
-    {
-        Notification.Action action = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_LOVE);
-
-        if (action == null)
-        {
-            action = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_ADD_TO_LIBRARY);
-        }
-
-        return action;
-    }
-
-    private Notification.Action getDontLoveIntent()
-    {
-        Notification.Action action = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DONT_LOVE);
-
-        if (action == null)
-        {
-            action = getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DELETE_FROM_LIBRARY);
-        }
-
-        return action;
-    }
-
-    private Notification.Action getDislikeIntent()
-    {
-        return getNotificationActionIntent(PACKAGE_NAME_SPOTIFY, TITLE_DISLIKE);
-    }
-
-    private void sendPendingIntent(Notification.Action action)
+    private void sendNotificationAction(Notification.Action action)
     {
         if (action == null)
         {
@@ -254,44 +195,121 @@ public class NotificationService extends NotificationListenerService
         {}
     }
 
-    private void dumpNotificationActions(Notification notification)
-    {
-        StringBuilder sb = new StringBuilder();
-        for (Notification.Action action: notification.actions)
-        {
-            sb.append(action.title);
-            sb.append(";");
-        }
-        String info = sb.toString();
-
-        Toast.makeText(this, info, Toast.LENGTH_LONG).show();
-        copyToClipboard(info);
-    }
-
-    private void copyToClipboard(String text)
-    {
-        ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clipboard != null)
-        {
-            clipboard.setText(text);
-        }
-    }
-
-    private static boolean contains(String[] array, String str)
+    private static boolean isContained(String str, String[]... arrays)
     {
         if (str == null)
         {
             return false;
         }
 
-        for (String s: array)
+        for (String[] a: arrays)
         {
-            if (str.equals(s))
+            for (String s: a)
             {
-                return true;
+                if (str.equals(s))
+                {
+                    return true;
+                }
             }
         }
 
         return false;
+    }
+
+    class ActionLove
+    {
+        public void execute()
+        {
+            sendNotificationAction(getLoveAction());
+        }
+
+        private Notification.Action getLoveAction()
+        {
+            return getNotificationAction(TITLE_LOVE, TITLE_ADD_TO_LIBRARY);
+        }
+    }
+
+    class ActionDontLove
+    {
+        public void execute()
+        {
+            sendNotificationAction(getDontLoveAction());
+        }
+
+        private Notification.Action getDontLoveAction()
+        {
+            return getNotificationAction(TITLE_DONT_LOVE, TITLE_DELETE_FROM_LIBRARY);
+        }
+    }
+
+    class ActionToggleLove
+    {
+        public void execute()
+        {
+            Notification.Action action = getLoveAction();
+
+            if (action == null)
+            {
+                action = getDontLoveAction();
+            }
+
+            sendNotificationAction(action);
+        }
+
+        private Notification.Action getLoveAction()
+        {
+            return getNotificationAction(TITLE_LOVE, TITLE_ADD_TO_LIBRARY);
+        }
+
+        private Notification.Action getDontLoveAction()
+        {
+            return getNotificationAction(TITLE_DONT_LOVE, TITLE_DELETE_FROM_LIBRARY);
+        }
+    }
+
+    class ActionDislike
+    {
+        public void execute()
+        {
+            sendNotificationAction(getDislikeAction());
+        }
+
+        private Notification.Action getDislikeAction()
+        {
+            return getNotificationAction(TITLE_DISLIKE);
+        }
+    }
+
+    class ActionDump
+    {
+        public void execute()
+        {
+            Notification notification = getNotification(PACKAGE_NAME_SPOTIFY);
+            String info = toString(notification);
+            Toast.makeText(NotificationService.this, info, Toast.LENGTH_LONG).show();
+            copyToClipboard(info);
+        }
+
+        private String toString(Notification notification)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (Notification.Action action: notification.actions)
+            {
+                sb.append(action.title);
+                sb.append(";");
+            }
+
+            return sb.toString();
+        }
+
+        private void copyToClipboard(String text)
+        {
+            ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard != null)
+            {
+                clipboard.setText(text);
+            }
+        }
     }
 }
