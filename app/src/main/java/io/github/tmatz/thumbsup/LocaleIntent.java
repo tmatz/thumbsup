@@ -1,6 +1,6 @@
 package io.github.tmatz.thumbsup;
 
-import com.twofortyfouram.locale.api.*;
+import com.twofortyfouram.locale.api.Intent;
 
 public final class LocaleIntent
 {

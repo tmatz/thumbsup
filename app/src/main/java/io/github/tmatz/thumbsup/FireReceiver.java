@@ -1,8 +1,9 @@
 package io.github.tmatz.thumbsup;
 
-import android.content.*;
-import android.os.*;
-import android.widget.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 
 public class FireReceiver extends BroadcastReceiver
 {
