@@ -28,7 +28,7 @@ public class MainActivity extends Activity
                 @Override
                 public void onClick(View p1)
                 {
-                    ThumbsUp.love(MainActivity.this);
+                    NotificationServiceHelper.love(MainActivity.this);
                 }
             });
 
@@ -38,7 +38,7 @@ public class MainActivity extends Activity
                 @Override
                 public void onClick(View p1)
                 {
-                    ThumbsUp.dontLove(MainActivity.this);
+                    NotificationServiceHelper.dontLove(MainActivity.this);
                 }
             });
 
@@ -48,7 +48,7 @@ public class MainActivity extends Activity
                 @Override
                 public void onClick(View p1)
                 {
-                    ThumbsUp.toggleLove(MainActivity.this);
+                    NotificationServiceHelper.toggleLove(MainActivity.this);
                 }
             });
 
@@ -58,7 +58,7 @@ public class MainActivity extends Activity
                 @Override
                 public void onClick(View p1)
                 {
-                    ThumbsUp.dislike(MainActivity.this);
+                    NotificationServiceHelper.dislike(MainActivity.this);
                 }
             });
 
@@ -78,7 +78,7 @@ public class MainActivity extends Activity
                 @Override
                 public void onClick(View p1)
                 {
-                    ThumbsUp.dump(MainActivity.this);
+                    NotificationServiceHelper.dump(MainActivity.this);
                 }
             });
     }

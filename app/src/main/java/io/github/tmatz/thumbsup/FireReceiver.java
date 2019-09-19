@@ -10,24 +10,27 @@ public class FireReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent)
     {
-        Bundle bundle = intent.getBundleExtra(LocaleIntent.BUNDLE);
-        final String action = bundle.getString(ThumbsUpIntent.EXTRA_ACTION);
+        Bundle bundle = intent.getBundleExtra(LocaleIntentHelper.BUNDLE);
+        final String action = bundle.getString(ThumbsUpIntentHelper.EXTRA_ACTION);
         switch (action)
         {
-            case ThumbsUpIntent.ACTION_LOVE:
-                ThumbsUp.love(context);
+            case ThumbsUpIntentHelper.ACTION_LOVE:
+                NotificationServiceHelper.love(context);
                 break;
 
-            case ThumbsUpIntent.ACTION_DONT_LOVE:
-                ThumbsUp.dontLove(context);
+            case ThumbsUpIntentHelper.ACTION_DONT_LOVE:
+                NotificationServiceHelper.dontLove(context);
                 break;
 
-            case ThumbsUpIntent.ACTION_TOGGLE_LOVE:
-                ThumbsUp.toggleLove(context);
+            case ThumbsUpIntentHelper.ACTION_TOGGLE_LOVE:
+                NotificationServiceHelper.toggleLove(context);
                 break;
 
-            case ThumbsUpIntent.ACTION_DISLIKE:
-                ThumbsUp.dislike(context);
+            case ThumbsUpIntentHelper.ACTION_DISLIKE:
+                NotificationServiceHelper.dislike(context);
+                break;
+
+            default:
                 break;
         }
     }

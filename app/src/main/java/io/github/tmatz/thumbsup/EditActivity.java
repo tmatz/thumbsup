@@ -37,19 +37,19 @@ public class EditActivity extends Activity
         switch (actionGroup.getCheckedRadioButtonId())
         {
             case R.id.editRadioButtonLove:
-                intent = createIntent("Love", ThumbsUpIntent.ACTION_LOVE);
+                intent = createIntent("Love", ThumbsUpIntentHelper.ACTION_LOVE);
                 break;
 
             case R.id.editRadioButtonDontLove:
-                intent = createIntent("Dont Love", ThumbsUpIntent.ACTION_DONT_LOVE);
+                intent = createIntent("Dont Love", ThumbsUpIntentHelper.ACTION_DONT_LOVE);
                 break;
 
             case R.id.editRadioButtonToggleLove:
-                intent = createIntent("Toggle Love", ThumbsUpIntent.ACTION_TOGGLE_LOVE);
+                intent = createIntent("Toggle Love", ThumbsUpIntentHelper.ACTION_TOGGLE_LOVE);
                 break;
 
             case R.id.editRadioButtonDislike:
-                intent = createIntent("Dislike", ThumbsUpIntent.ACTION_DISLIKE);
+                intent = createIntent("Dislike", ThumbsUpIntentHelper.ACTION_DISLIKE);
                 break;
 
             default:
@@ -63,10 +63,10 @@ public class EditActivity extends Activity
     private Intent createIntent(String blurb, String extraAction)
     {
         Bundle bundle = new Bundle();
-        bundle.putString(ThumbsUpIntent.EXTRA_ACTION, extraAction);
+        bundle.putString(ThumbsUpIntentHelper.EXTRA_ACTION, extraAction);
         Intent intent = new Intent();
-        intent.putExtra(LocaleIntent.BLURB, blurb);
-        intent.putExtra(LocaleIntent.BUNDLE, bundle);
+        intent.putExtra(LocaleIntentHelper.BLURB, blurb);
+        intent.putExtra(LocaleIntentHelper.BUNDLE, bundle);
         return intent;
     }
 }

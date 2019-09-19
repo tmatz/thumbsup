@@ -3,7 +3,7 @@ package io.github.tmatz.thumbsup;
 import android.content.Context;
 import android.content.Intent;
 
-public class ThumbsUp
+public final class NotificationServiceHelper
 {
     public static void love(Context context)
     {

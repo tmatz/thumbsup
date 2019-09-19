@@ -1,6 +1,6 @@
 package io.github.tmatz.thumbsup;
 
-public final class ThumbsUpIntent
+public final class ThumbsUpIntentHelper
 {
     public static final String EXTRA_ACTION = "action";
     public static final String ACTION_LOVE = "love";

@@ -276,6 +276,7 @@ public class NotificationService extends NotificationListenerService
         @Override
         public void execute()
         {
+            // nop
         }
     }
 
