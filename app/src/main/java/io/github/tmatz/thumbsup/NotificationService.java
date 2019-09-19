@@ -103,7 +103,7 @@ public class NotificationService extends NotificationListenerService
         for (Notification.Action action: notification.actions)
         {
             String title = action.title.toString().trim();
-            if (Utils.existIn(title, titles) && action.actionIntent != null)
+            if (StringUtils.existIn(title, titles) && action.actionIntent != null)
             {
                 return action;
             }
@@ -250,6 +250,11 @@ public class NotificationService extends NotificationListenerService
 
         private String toString(Notification notification)
         {
+            if (notification == null)
+            {
+                return "no notification";
+            }
+
             StringBuilder sb = new StringBuilder();
 
             for (Notification.Action action: notification.actions)
@@ -276,10 +281,11 @@ public class NotificationService extends NotificationListenerService
         @Override
         public void execute()
         {
+            // nop
         }
     }
 
-    private static class Utils
+    private static final class StringUtils
     {
         public static boolean existIn(String str, String[]... arrays)
         {
@@ -290,12 +296,27 @@ public class NotificationService extends NotificationListenerService
 
             for (String[] a: arrays)
             {
-                for (String s: a)
+                if (existIn(str, a))
                 {
-                    if (str.equals(s))
-                    {
-                        return true;
-                    }
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static boolean existIn(String str, String ...strings)
+        {
+            if (str == null)
+            {
+                return false;
+            }
+
+            for (String s: strings)
+            {
+                if (str.equals(s))
+                {
+                    return true;
                 }
             }
 
