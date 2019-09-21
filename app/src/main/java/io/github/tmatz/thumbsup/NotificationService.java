@@ -10,7 +10,6 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.text.ClipboardManager;
 import android.widget.Toast;
-import android.service.notification.NotificationListenerService.RankingMap;
 
 public class NotificationService extends NotificationListenerService
 {
