@@ -10,6 +10,7 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.text.ClipboardManager;
 import android.widget.Toast;
+import android.service.notification.NotificationListenerService.RankingMap;
 
 public class NotificationService extends NotificationListenerService
 {
@@ -58,6 +59,12 @@ public class NotificationService extends NotificationListenerService
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn)
+    {
+        // nop
+    }
+
+    @Override
+    public void onNotificationRemoved(StatusBarNotification sbn)
     {
         // nop
     }
