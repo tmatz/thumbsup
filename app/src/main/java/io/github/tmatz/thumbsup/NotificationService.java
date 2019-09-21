@@ -56,6 +56,12 @@ public class NotificationService extends NotificationListenerService
         return super.onStartCommand(intent, flags, startId);
     }
 
+    @Override
+    public void onNotificationPosted(StatusBarNotification sbn)
+    {
+        // nop
+    }
+
     private IServiceAction createServiceAction(String action)
     {
         switch (action)
